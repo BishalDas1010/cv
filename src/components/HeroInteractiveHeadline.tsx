@@ -78,6 +78,13 @@ export const HeroInteractiveHeadline: React.FC<HeroInteractiveHeadlineProps> = (
     const onPointerMove = (e: Event) => {
       const pe = e as PointerEvent;
       if (pe.pointerType === 'touch') return;
+
+      const targetEl = document.elementFromPoint(pe.clientX, pe.clientY);
+      if (targetEl && targetEl.closest('#hero-portrait')) {
+        isInside = false;
+        return;
+      }
+
       mouseX = pe.clientX;
       mouseY = pe.clientY;
       if (!isInside) {

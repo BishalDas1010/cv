@@ -283,7 +283,7 @@ export const ScrollPortraitBridge: React.FC<ScrollPortraitBridgeProps> = ({
               alt={alt}
               referrerPolicy="no-referrer"
               onError={onError}
-              className="w-full h-full object-cover object-top will-change-transform"
+              className="w-full h-full object-cover object-top will-change-transform grayscale contrast-110 hover:grayscale-0 transition-all duration-500 cursor-pointer"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-b from-neutral-800 to-neutral-950 flex flex-col items-center justify-center gap-2 text-neutral-400">

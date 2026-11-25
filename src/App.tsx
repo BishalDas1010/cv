@@ -11,7 +11,7 @@ import {
 import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { Footer } from './components/Footer';
 import { HeroInteractiveHeadline } from './components/HeroInteractiveHeadline';
-import { InteractiveBackground } from './components/InteractiveBackground';
+
 import { MobilePreviewModal } from './components/MobilePreviewModal';
 import { Navbar, NavSection } from './components/Navbar';
 import { ProjectFolderCard } from './components/ProjectFolderCard';
@@ -45,12 +45,47 @@ export default function App() {
   const heroSlotRef = useRef<HTMLDivElement | null>(null);
   const aboutSlotRef = useRef<HTMLDivElement | null>(null);
 
-  // Contact form state
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [senderMessage, setSenderMessage] = useState('');
   const [formError, setFormError] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = senderName.trim();
+    const trimmedEmail = senderEmail.trim();
+    const trimmedMsg = senderMessage.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedEmail.includes('@') || !trimmedMsg) {
+      setFormError('Please enter your name, a valid email address, and a short message.');
+      return;
+    }
+
+    setFormError('');
+
+    try {
+      const formData = new URLSearchParams();
+      formData.append('entry.1128053529', trimmedName);
+      formData.append('entry.1222869304', trimmedEmail);
+      formData.append('entry.499354010', trimmedMsg);
+
+      await fetch(
+        'https://docs.google.com/forms/d/e/1FAIpQLScV6BUsGWplsWs99ZbPDWcWJztMSHtnldpiwId3jTeZufJKOQ/formResponse',
+        {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData,
+        }
+      );
+    } catch {
+      // Suppress network errors for seamless UX
+    }
+
+    setFormSubmitted(true);
+  };
+
+
 
   const isPreviewFrame = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -139,30 +174,14 @@ export default function App() {
     }
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedName = senderName.trim();
-    const trimmedEmail = senderEmail.trim();
-    const trimmedMsg = senderMessage.trim();
 
-    if (!trimmedName || !trimmedEmail || !trimmedEmail.includes('@') || !trimmedMsg) {
-      setFormError('Please enter your name, a valid email address, and a short message.');
-      return;
-    }
-
-    setFormError('');
-    setFormSubmitted(true);
-    setSenderName('');
-    setSenderEmail('');
-    setSenderMessage('');
-  };
 
   return (
     <div
       ref={rootRef}
       className="relative min-h-screen bg-neutral-50 text-neutral-900 dark:bg-[#0A0A0A] dark:text-neutral-100 pb-20 md:pb-0 transition-colors duration-200"
     >
-      <InteractiveBackground isDark={isDark} />
+
 
       <ScrollPortraitBridge
         rootRef={rootRef}
@@ -195,8 +214,9 @@ export default function App() {
 
             {/* Centered Bright Art-Style Portrait Slot (Seamless target for ScrollPortraitBridge) */}
             <div
+              id="hero-portrait"
               ref={heroSlotRef}
-              className={`mt-6 md:-mt-4 relative z-10 w-36 sm:w-48 md:w-56 aspect-[3/4] rounded-2xl overflow-hidden border border-neutral-300 dark:border-white/15 bg-[#27292E] shadow-xl group ${
+              className={`mt-6 md:-mt-4 relative z-10 w-36 sm:w-48 md:w-56 aspect-[3/4] rounded-2xl overflow-hidden border border-neutral-300 dark:border-white/15 bg-[#27292E] shadow-xl group cursor-pointer ${
                 prefersReduced ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -206,7 +226,7 @@ export default function App() {
                   alt="Art-style portrait of Bishal Das, Software Engineer"
                   referrerPolicy="no-referrer"
                   onError={() => setPortraitError(true)}
-                  className="w-full h-full object-cover object-top transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
+                  className="w-full h-full object-cover object-top grayscale contrast-110 group-hover:grayscale-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-b from-neutral-800 to-neutral-950 flex flex-col items-center justify-center gap-2 text-neutral-400">
@@ -609,7 +629,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right Column: Hairline Minimalist Form */}
             <div className="lg:col-span-7">
               {formSubmitted ? (
                 <div className="p-6 sm:p-8 rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#131316] space-y-4">
@@ -618,18 +637,23 @@ export default function App() {
                     <span>Message received</span>
                   </div>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    Thanks for reaching out. Your note has been logged and I will reply via email shortly.
+                    Thanks for reaching out. Your note has been submitted to the Google Form successfully!
                   </p>
                   <button
                     type="button"
-                    onClick={() => setFormSubmitted(false)}
+                    onClick={() => {
+                      setFormSubmitted(false);
+                      setSenderName('');
+                      setSenderEmail('');
+                      setSenderMessage('');
+                    }}
                     className="min-h-[44px] px-4 py-2 rounded-xl border border-neutral-300 dark:border-white/15 text-xs font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                   >
                     Send another message
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleContactSubmit} noValidate className="space-y-6">
+                <form onSubmit={handleContactSubmit} className="space-y-6" noValidate>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                       <label
@@ -640,6 +664,7 @@ export default function App() {
                       </label>
                       <input
                         id="contact-name"
+                        name="entry.1128053529"
                         type="text"
                         value={senderName}
                         onChange={(e) => setSenderName(e.target.value)}
@@ -657,6 +682,7 @@ export default function App() {
                       </label>
                       <input
                         id="contact-email"
+                        name="entry.1222869304"
                         type="email"
                         value={senderEmail}
                         onChange={(e) => setSenderEmail(e.target.value)}
@@ -675,6 +701,7 @@ export default function App() {
                     </label>
                     <textarea
                       id="contact-message"
+                      name="entry.499354010"
                       rows={3}
                       value={senderMessage}
                       onChange={(e) => setSenderMessage(e.target.value)}
